@@ -1,16 +1,12 @@
 import ffmpeg
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.uix.label import Label
 from kivy.uix.camera import Camera
 
 class MyApp(App):
     def build(self):
-        Builder.load_string('''
-        BoxLayout:
-            orientation: 'vertical'
-            Label:
-                id: label
-        ''')
+        self.label = Label(text="Initial Label Text")
         camera = Camera()
         try:
             # Create an ffmpeg.input() object for the camera feed.
