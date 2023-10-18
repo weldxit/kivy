@@ -1,42 +1,35 @@
-from kivymd.app import MDApp
-from kivymd.uix.label import MDLabel
-from kivymd.uix.screen import Screen
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDRectangleFlatButton
- 
-# creating Demo Class(base class)
-class Demo(MDApp):
- 
+import ffmpeg
+from kivy.app import App
+from kivy.lang import Builder
+from kivy.uix.camera import Camera
+
+class MyApp(App):
     def build(self):
-        screen = Screen()
-         
-        # defining label with all the parameters
-        l = MDLabel(text="HI PEOPLE!", halign='center',
-                    theme_text_color="Custom",
-                    text_color=(0.5, 0, 0.5, 1),
-                    font_style='Caption')
-         
-        # defining Text field with all the parameters
-        # name = MDTextField(text="Enter name", pos_hint={
-        #                    'center_x': 0.8, 'center_y': 0.8},
-        #                    size_hint_x=None, width=100)
-         
-        # defining Button with all the parameters
-        btn = MDRectangleFlatButton(text="Submit", pos_hint={
-                                    'center_x': 0.5, 'center_y': 0.3},
-                                    on_release=self.btnfunc)
-        # adding widgets to screen
-        # screen.add_widget(name)
-        screen.add_widget(btn)
-        screen.add_widget(l)
-        # returning the screen
-        return screen
- 
-    # defining a btnfun() for the button to
-    # call when clicked on it
-    def btnfunc(self, obj):
-        print("button is pressed!!")
- 
- 
-if __name__ == "__main__":
-    Demo().run()
+        Builder.load_string('''
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                id: label
+        ''')
+        camera = Camera()
+        try:
+            # Create an ffmpeg.input() object for the camera feed.
+            camera_input = ffmpeg.input(camera.texture)
+            print(camera_input)
+
+            # Create an ffmpeg.output() object for the network server.
+            network_output = ffmpeg.output(camera_input, format='flv', rtmp='rtmp://192.168.0.104:1935/live/stream')
+
+            # Specify the video and audio codecs and other encoding parameters.
+            network_output.video.codec = 'libx264'
+            network_output.video.bitrate = 2000000
+            network_output.audio.codec = 'aac'
+            network_output.audio.bitrate = 128000
+
+            # Pipe the output of the ffmpeg.input() object to the input of the ffmpeg.output() object.
+            ffmpeg.run(camera_input, network_output)
+            self.label.text = 'Stream is working!'
+        except Exception as e:
+            self.label.text = 'Error: {}'.format(e)
+if __name__ == '__main__':
+    MyApp().run()
